@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { playEatSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine, isMuted, setMuted } from "./snake/sounds";
+import { playEatSound, playMoveSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine, isMuted, setMuted } from "./snake/sounds";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DPad from "./snake/DPad";
 import { Volume2, VolumeX, Pause, Play } from "lucide-react";
@@ -158,6 +158,7 @@ const SnakeGame = () => {
           return prev;
         }
 
+        playMoveSound(score);
         const newSnake = [head, ...prev];
 
         // Eat food

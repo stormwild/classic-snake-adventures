@@ -73,6 +73,23 @@ export const playSelfHitSound = () => {
   osc2.stop(c.currentTime + 0.4);
 };
 
+/** Subtle tick on each movement step — duration shortens with score */
+export const playMoveSound = (score: number) => {
+  if (muted) return;
+  const c = ctx();
+  const osc = c.createOscillator();
+  const gain = c.createGain();
+  osc.type = "sine";
+  const freq = 220 + score * 6;
+  const dur = Math.max(0.02, 0.06 - score * 0.002);
+  osc.frequency.setValueAtTime(Math.min(freq, 500), c.currentTime);
+  gain.gain.setValueAtTime(0.04, c.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+  osc.connect(gain).connect(c.destination);
+  osc.start();
+  osc.stop(c.currentTime + dur);
+};
+
 /** Continuous engine hum that rises in pitch with speed */
 let engineOsc: OscillatorNode | null = null;
 let engineGain: GainNode | null = null;
