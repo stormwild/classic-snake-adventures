@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { playEatSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine } from "./snake/sounds";
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 22;
@@ -43,6 +44,7 @@ const SnakeGame = () => {
     setGameOver(false);
     setScore(0);
     setStarted(true);
+    startEngine();
   }, []);
 
   // Keyboard controls
@@ -83,6 +85,7 @@ const SnakeGame = () => {
   useEffect(() => {
     if (!started || gameOver) return;
 
+    updateEngine(score);
     const speed = Math.max(60, INITIAL_SPEED - score * SPEED_INCREMENT);
     const interval = setInterval(() => {
       dirRef.current = nextDirRef.current;
@@ -98,12 +101,16 @@ const SnakeGame = () => {
 
         // Wall collision
         if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+          playWallHitSound();
+          stopEngine();
           setGameOver(true);
           return prev;
         }
 
         // Self collision
         if (prev.some((s) => s.x === head.x && s.y === head.y)) {
+          playSelfHitSound();
+          stopEngine();
           setGameOver(true);
           return prev;
         }
@@ -112,6 +119,7 @@ const SnakeGame = () => {
 
         // Eat food
         if (head.x === food.x && head.y === food.y) {
+          playEatSound();
           setScore((s) => {
             const ns = s + 1;
             setHighScore((h) => {
