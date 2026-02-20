@@ -1,3 +1,15 @@
+let muted = false;
+
+export const isMuted = () => muted;
+export const setMuted = (val: boolean) => {
+  muted = val;
+  if (muted && engineGain) {
+    engineGain.gain.setValueAtTime(0, ctx().currentTime);
+  } else if (!muted && engineGain && engineOsc) {
+    engineGain.gain.setValueAtTime(0.04, ctx().currentTime);
+  }
+};
+
 const ctx = () => {
   if (!(window as any).__snakeAudioCtx) {
     (window as any).__snakeAudioCtx = new AudioContext();
@@ -7,6 +19,7 @@ const ctx = () => {
 
 /** Short blip when eating food */
 export const playEatSound = () => {
+  if (muted) return;
   const c = ctx();
   const osc = c.createOscillator();
   const gain = c.createGain();
@@ -22,6 +35,7 @@ export const playEatSound = () => {
 
 /** Low thud when hitting a wall */
 export const playWallHitSound = () => {
+  if (muted) return;
   const c = ctx();
   const osc = c.createOscillator();
   const gain = c.createGain();
@@ -37,8 +51,8 @@ export const playWallHitSound = () => {
 
 /** Crunchy buzz when hitting yourself */
 export const playSelfHitSound = () => {
+  if (muted) return;
   const c = ctx();
-  // Distorted buzz
   const osc = c.createOscillator();
   const osc2 = c.createOscillator();
   const gain = c.createGain();
@@ -57,11 +71,12 @@ export const playSelfHitSound = () => {
   osc2.stop(c.currentTime + 0.4);
 };
 
-/** Continuous engine hum that rises in pitch with speed. Call updateEngine each tick. */
+/** Continuous engine hum that rises in pitch with speed */
 let engineOsc: OscillatorNode | null = null;
 let engineGain: GainNode | null = null;
 
 export const startEngine = () => {
+  if (muted) return;
   const c = ctx();
   if (engineOsc) stopEngine();
   engineOsc = c.createOscillator();
@@ -73,9 +88,8 @@ export const startEngine = () => {
   engineOsc.start();
 };
 
-/** Update engine pitch based on current score */
 export const updateEngine = (score: number) => {
-  if (!engineOsc) return;
+  if (!engineOsc || muted) return;
   const c = ctx();
   const freq = 60 + score * 8;
   engineOsc.frequency.setTargetAtTime(Math.min(freq, 400), c.currentTime, 0.1);
