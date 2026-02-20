@@ -8,33 +8,102 @@ interface DPadProps {
 }
 
 const DPad = ({ onDirection, disabled }: DPadProps) => {
-  const btn =
-    "flex items-center justify-center w-12 h-12 rounded-sm border border-border bg-card text-foreground active:bg-primary active:text-primary-foreground transition-colors touch-manipulation";
-
   const handle = (dir: Direction) => (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
     if (!disabled) onDirection(dir);
   };
 
+  const base =
+    "absolute flex items-center justify-center text-foreground transition-colors touch-manipulation select-none";
+  const active = disabled
+    ? "opacity-30 bg-card"
+    : "bg-card active:bg-primary active:text-primary-foreground";
+
+  // Diamond layout: a rotated square where each triangle-quarter is a button
+  // We use clip-path trapezoids to carve each direction
+  const size = "100%";
+
   return (
-    <div className="grid grid-cols-3 gap-1 w-[156px]" style={{ touchAction: "none" }}>
-      <div />
-      <button className={btn} onTouchStart={handle("UP")} onMouseDown={handle("UP")} aria-label="Up">
-        <ChevronUp size={24} />
+    <div
+      className="relative w-full"
+      style={{ aspectRatio: "1 / 1", maxWidth: 220, touchAction: "none" }}
+    >
+      {/* UP */}
+      <button
+        className={`${base} ${active}`}
+        style={{
+          inset: 0,
+          clipPath: "polygon(50% 50%, 0% 0%, 100% 0%)",
+          borderRadius: "8px 8px 0 0",
+        }}
+        onTouchStart={handle("UP")}
+        onMouseDown={handle("UP")}
+        aria-label="Up"
+      >
+        <ChevronUp size={28} style={{ marginTop: "-20%" }} />
       </button>
-      <div />
-      <button className={btn} onTouchStart={handle("LEFT")} onMouseDown={handle("LEFT")} aria-label="Left">
-        <ChevronLeft size={24} />
+
+      {/* DOWN */}
+      <button
+        className={`${base} ${active}`}
+        style={{
+          inset: 0,
+          clipPath: "polygon(50% 50%, 0% 100%, 100% 100%)",
+          borderRadius: "0 0 8px 8px",
+        }}
+        onTouchStart={handle("DOWN")}
+        onMouseDown={handle("DOWN")}
+        aria-label="Down"
+      >
+        <ChevronDown size={28} style={{ marginTop: "20%" }} />
       </button>
-      <div />
-      <button className={btn} onTouchStart={handle("RIGHT")} onMouseDown={handle("RIGHT")} aria-label="Right">
-        <ChevronRight size={24} />
+
+      {/* LEFT */}
+      <button
+        className={`${base} ${active}`}
+        style={{
+          inset: 0,
+          clipPath: "polygon(50% 50%, 0% 0%, 0% 100%)",
+          borderRadius: "8px 0 0 8px",
+        }}
+        onTouchStart={handle("LEFT")}
+        onMouseDown={handle("LEFT")}
+        aria-label="Left"
+      >
+        <ChevronLeft size={28} style={{ marginLeft: "-20%" }} />
       </button>
-      <div />
-      <button className={btn} onTouchStart={handle("DOWN")} onMouseDown={handle("DOWN")} aria-label="Down">
-        <ChevronDown size={24} />
+
+      {/* RIGHT */}
+      <button
+        className={`${base} ${active}`}
+        style={{
+          inset: 0,
+          clipPath: "polygon(50% 50%, 100% 0%, 100% 100%)",
+          borderRadius: "0 8px 8px 0",
+        }}
+        onTouchStart={handle("RIGHT")}
+        onMouseDown={handle("RIGHT")}
+        aria-label="Right"
+      >
+        <ChevronRight size={28} style={{ marginLeft: "20%" }} />
       </button>
-      <div />
+
+      {/* Center divider lines */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          inset: 0,
+          background:
+            "linear-gradient(45deg, transparent calc(50% - 1px), hsl(var(--border)) calc(50% - 1px), hsl(var(--border)) calc(50% + 1px), transparent calc(50% + 1px)), linear-gradient(-45deg, transparent calc(50% - 1px), hsl(var(--border)) calc(50% - 1px), hsl(var(--border)) calc(50% + 1px), transparent calc(50% + 1px))",
+          borderRadius: 8,
+        }}
+      />
+
+      {/* Outer border */}
+      <div
+        className="absolute pointer-events-none border-2 border-border rounded-lg"
+        style={{ inset: 0 }}
+      />
     </div>
   );
 };
