@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { playEatSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine } from "./snake/sounds";
+import { useIsMobile } from "@/hooks/use-mobile";
+import DPad from "./snake/DPad";
 
 const GRID_SIZE = 20;
 const CELL_SIZE = 22;
@@ -21,6 +23,7 @@ const getRandomFood = (snake: Position[]): Position => {
 };
 
 const SnakeGame = () => {
+  const isMobile = useIsMobile();
   const [snake, setSnake] = useState<Position[]>([{ x: 10, y: 10 }]);
   const [food, setFood] = useState<Position>({ x: 5, y: 5 });
   const [direction, setDirection] = useState<Direction>("RIGHT");
@@ -171,15 +174,17 @@ const boardPx = GRID_SIZE * CELL_SIZE;
 
   useEffect(() => {
     const updateScale = () => {
-      const maxW = window.innerWidth - 32;
-      const maxH = window.innerHeight - 160;
+      const pad = 16;
+      const maxW = window.innerWidth - pad * 2;
+      const dpadSpace = isMobile ? 180 : 0;
+      const maxH = window.innerHeight - 120 - dpadSpace;
       const s = Math.min(maxW / boardPx, maxH / boardPx, 1);
       setScale(s);
     };
     updateScale();
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
-  }, [boardPx]);
+  }, [boardPx, isMobile]);
 
   return (
     <div className="flex flex-col items-center gap-4 sm:gap-6 select-none">
@@ -195,19 +200,20 @@ const boardPx = GRID_SIZE * CELL_SIZE;
         <span>BEST: <span className="text-accent" style={{ textShadow: "var(--neon-glow-accent)" }}>{highScore}</span></span>
       </div>
 
-      <div
-        ref={containerRef}
-        className="relative border-2 border-border rounded-sm origin-top"
-        style={{
-          width: boardPx,
-          height: boardPx,
-          transform: `scale(${scale})`,
-          boxShadow: "var(--neon-glow)",
-          background: "hsl(var(--card))",
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div style={{ width: boardPx * scale, height: boardPx * scale, overflow: "hidden" }}>
+        <div
+          ref={containerRef}
+          className="relative border-2 border-border rounded-sm origin-top-left"
+          style={{
+            width: boardPx,
+            height: boardPx,
+            transform: `scale(${scale})`,
+            boxShadow: "var(--neon-glow)",
+            background: "hsl(var(--card))",
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
         {/* Grid dots */}
         {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
           const x = i % GRID_SIZE;
@@ -278,7 +284,20 @@ const boardPx = GRID_SIZE * CELL_SIZE;
             </p>
           </div>
         )}
+        </div>
       </div>
+
+      {isMobile && started && !gameOver && (
+        <DPad
+          onDirection={(dir) => {
+            const cur = dirRef.current;
+            const opposites: Record<Direction, Direction> = {
+              UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT",
+            };
+            if (opposites[dir] !== cur) nextDirRef.current = dir;
+          }}
+        />
+      )}
     </div>
   );
 };
