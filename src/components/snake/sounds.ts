@@ -14,7 +14,9 @@ const ctx = () => {
   if (!(window as any).__snakeAudioCtx) {
     (window as any).__snakeAudioCtx = new AudioContext();
   }
-  return (window as any).__snakeAudioCtx as AudioContext;
+  const c = (window as any).__snakeAudioCtx as AudioContext;
+  if (c.state === "suspended") c.resume();
+  return c;
 };
 
 /** Short blip when eating food */
