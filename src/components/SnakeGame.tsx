@@ -165,27 +165,43 @@ const SnakeGame = () => {
     touchStart.current = null;
   };
 
-  const boardPx = GRID_SIZE * CELL_SIZE;
+const boardPx = GRID_SIZE * CELL_SIZE;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      const maxW = window.innerWidth - 32;
+      const maxH = window.innerHeight - 160;
+      const s = Math.min(maxW / boardPx, maxH / boardPx, 1);
+      setScale(s);
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [boardPx]);
 
   return (
-    <div className="flex flex-col items-center gap-6 select-none">
+    <div className="flex flex-col items-center gap-4 sm:gap-6 select-none">
       <h1
-        className="text-xl sm:text-2xl text-foreground tracking-wider"
+        className="text-base sm:text-2xl text-foreground tracking-wider"
         style={{ textShadow: "var(--neon-glow)" }}
       >
         SNAKE
       </h1>
 
-      <div className="flex gap-8 text-xs text-muted-foreground">
+      <div className="flex gap-8 text-[10px] sm:text-xs text-muted-foreground">
         <span>SCORE: <span className="text-foreground">{score}</span></span>
         <span>BEST: <span className="text-accent" style={{ textShadow: "var(--neon-glow-accent)" }}>{highScore}</span></span>
       </div>
 
       <div
-        className="relative border-2 border-border rounded-sm"
+        ref={containerRef}
+        className="relative border-2 border-border rounded-sm origin-top"
         style={{
           width: boardPx,
           height: boardPx,
+          transform: `scale(${scale})`,
           boxShadow: "var(--neon-glow)",
           background: "hsl(var(--card))",
         }}
