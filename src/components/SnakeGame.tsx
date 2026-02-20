@@ -360,24 +360,32 @@ const SnakeGame = () => {
         </div>
       </div>
 
-      {/* Mobile D-pad + pause */}
-      {isMobile && started && !gameOver && (
-        <div className="flex items-center gap-6">
-          <button onClick={togglePause} className={`${iconBtn} w-12 h-12 flex items-center justify-center`} aria-label={paused ? "Resume" : "Pause"}>
+      {/* Mobile D-pad + pause/mute — always visible on mobile */}
+      {isMobile && (
+        <div className="flex items-center gap-4 w-full max-w-[340px] px-2">
+          <button
+            onClick={togglePause}
+            className={`${iconBtn} w-12 h-12 flex items-center justify-center shrink-0 ${!started || gameOver ? "opacity-30 pointer-events-none" : ""}`}
+            aria-label={paused ? "Resume" : "Pause"}
+          >
             {paused ? <Play size={20} /> : <Pause size={20} />}
           </button>
           <DPad
             onDirection={(dir) => {
-              if (paused) return;
+              if (paused || !started || gameOver) return;
               const cur = dirRef.current;
               const opposites: Record<Direction, Direction> = {
                 UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT",
               };
               if (opposites[dir] !== cur) nextDirRef.current = dir;
             }}
-            disabled={paused}
+            disabled={!started || gameOver || paused}
           />
-          <button onClick={toggleMute} className={`${iconBtn} w-12 h-12 flex items-center justify-center`} aria-label={muted ? "Unmute" : "Mute"}>
+          <button
+            onClick={toggleMute}
+            className={`${iconBtn} w-12 h-12 flex items-center justify-center shrink-0`}
+            aria-label={muted ? "Unmute" : "Mute"}
+          >
             {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
         </div>
