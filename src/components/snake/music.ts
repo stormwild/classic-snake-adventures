@@ -1,12 +1,12 @@
 /**
- * Procedural chiptune background music using Web Audio API.
- * Generates a looping sequence of bass + melody + percussion
- * that speeds up with score.
+ * Retro arcade background music — Web Audio API chiptune generator.
+ * Inspired by classic NES/Game Boy soundtracks.
  */
 
 let playing = false;
 let stopRequested = false;
-let currentTimeout: ReturnType<typeof setTimeout> | null = null;
+let scheduledUntil = 0;
+let rafId: number | null = null;
 
 const ctx = () => {
   if (!(window as any).__snakeAudioCtx) {
@@ -17,168 +17,189 @@ const ctx = () => {
   return c;
 };
 
-// Pentatonic scale notes (fun, can't sound "wrong")
-const SCALE = [130.81, 146.83, 164.81, 196.0, 220.0]; // C3 pentatonic
-const MELODY_SCALE = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]; // C4-C5 pentatonic+
-
-// Patterns — indices into SCALE / MELODY_SCALE
-const BASS_PATTERNS = [
-  [0, 0, 2, 3, 0, 0, 4, 3],
-  [0, 2, 3, 4, 3, 2, 0, 0],
-  [3, 3, 0, 0, 2, 4, 3, 2],
-  [0, 4, 3, 2, 0, 2, 3, 4],
-];
-
-const MELODY_PATTERNS = [
-  [0, 2, 4, 5, 7, 5, 4, 2],
-  [7, 5, 4, 2, 0, 2, 4, 5],
-  [0, 4, 2, 5, 7, 4, 5, 0],
-  [4, 5, 7, 5, 4, 2, 0, 2],
-  [2, 4, 5, 7, 5, 4, 2, 0],
-];
-
-// Kick pattern (1 = kick, 0 = silent)
-const KICK_PATTERNS = [
-  [1, 0, 0, 1, 0, 0, 1, 0],
-  [1, 0, 1, 0, 0, 1, 0, 0],
-  [1, 0, 0, 0, 1, 0, 0, 1],
-];
-
-// Hi-hat pattern
-const HAT_PATTERNS = [
-  [1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 1, 1, 1, 0, 1, 1],
-  [0, 1, 1, 0, 1, 1, 0, 1],
-];
-
 let masterGain: GainNode | null = null;
-let currentBPM = 140;
-let patternIndex = 0;
+let currentBPM = 150;
 let stepIndex = 0;
-let barCount = 0;
 
-const pickRandom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+// --- Note helpers ---
+const NOTE = (semitone: number) => 440 * Math.pow(2, semitone / 12);
 
-let currentBass: number[];
-let currentMelody: number[];
-let currentKick: number[];
-let currentHat: number[];
+// Notes relative to A4=440
+const C4 = NOTE(-9), D4 = NOTE(-7), E4 = NOTE(-5), F4 = NOTE(-4), G4 = NOTE(-2);
+const A4 = NOTE(0), B4 = NOTE(2);
+const C5 = NOTE(3), D5 = NOTE(5), E5 = NOTE(7), F5 = NOTE(8), G5 = NOTE(10);
+const A3 = NOTE(-12), C3 = NOTE(-21), D3 = NOTE(-19), E3 = NOTE(-17), F3 = NOTE(-16), G3 = NOTE(-14);
 
-const newPatterns = () => {
-  currentBass = pickRandom(BASS_PATTERNS);
-  currentMelody = pickRandom(MELODY_PATTERNS);
-  currentKick = pickRandom(KICK_PATTERNS);
-  currentHat = pickRandom(HAT_PATTERNS);
+// --- Melody phrases (Mario/Pac-Man/DK inspired) ---
+const MELODIES = [
+  // Upbeat bouncy (Mario-ish)
+  [E5, E5, 0, E5, 0, C5, E5, 0, G5, 0, 0, 0, G4, 0, 0, 0],
+  // Pac-Man chase vibe
+  [C5, 0, C5, D5, E5, 0, C5, 0, A4, 0, A4, 0, 0, 0, 0, 0],
+  // DK stomp
+  [G4, 0, A4, B4, D5, 0, B4, 0, A4, 0, G4, 0, E4, 0, 0, 0],
+  // Descending run
+  [G5, F5, E5, D5, C5, 0, E5, 0, G5, 0, C5, 0, E5, 0, 0, 0],
+  // Playful bounce
+  [C5, E5, G5, E5, C5, 0, D5, F5, A4, F5, D5, 0, C5, 0, 0, 0],
+];
+
+const BASS_LINES = [
+  [C3, 0, C3, 0, G3, 0, G3, 0, A3, 0, A3, 0, F3, 0, F3, 0],
+  [C3, 0, 0, C3, E3, 0, 0, E3, F3, 0, 0, F3, G3, 0, 0, G3],
+  [A3, 0, A3, 0, F3, 0, F3, 0, G3, 0, G3, 0, C3, 0, C3, 0],
+];
+
+// Kick on beats 1 & 3, snare on 2 & 4 (16th note grid)
+const DRUM_KICK = [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0];
+const DRUM_SNARE= [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0];
+const DRUM_HAT  = [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0];
+
+let melodyIdx = 0;
+let bassIdx = 0;
+
+const pickNext = () => {
+  melodyIdx = Math.floor(Math.random() * MELODIES.length);
+  bassIdx = Math.floor(Math.random() * BASS_LINES.length);
 };
 
-const playNote = (freq: number, type: OscillatorType, vol: number, dur: number, detune = 0) => {
+// --- Synth voices ---
+const playTone = (freq: number, time: number, dur: number, type: OscillatorType, vol: number, detune = 0) => {
+  if (!masterGain) return;
   const c = ctx();
   const osc = c.createOscillator();
   const gain = c.createGain();
   osc.type = type;
-  osc.frequency.setValueAtTime(freq, c.currentTime);
-  if (detune) osc.detune.setValueAtTime(detune, c.currentTime);
-  gain.gain.setValueAtTime(vol, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
-  osc.connect(gain).connect(masterGain!);
-  osc.start();
-  osc.stop(c.currentTime + dur);
+  osc.frequency.setValueAtTime(freq, time);
+  if (detune) osc.detune.setValueAtTime(detune, time);
+  gain.gain.setValueAtTime(vol, time);
+  gain.gain.setValueAtTime(vol, time + dur * 0.6);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+  osc.connect(gain).connect(masterGain);
+  osc.start(time);
+  osc.stop(time + dur + 0.01);
 };
 
-const playKick = () => {
+const playKick = (time: number) => {
+  if (!masterGain) return;
   const c = ctx();
   const osc = c.createOscillator();
   const gain = c.createGain();
   osc.type = "sine";
-  osc.frequency.setValueAtTime(150, c.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(30, c.currentTime + 0.12);
-  gain.gain.setValueAtTime(0.18, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.15);
-  osc.connect(gain).connect(masterGain!);
-  osc.start();
-  osc.stop(c.currentTime + 0.15);
+  osc.frequency.setValueAtTime(160, time);
+  osc.frequency.exponentialRampToValueAtTime(35, time + 0.1);
+  gain.gain.setValueAtTime(0.28, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+  osc.connect(gain).connect(masterGain);
+  osc.start(time);
+  osc.stop(time + 0.13);
 };
 
-const playHat = () => {
+const playSnare = (time: number) => {
+  if (!masterGain) return;
   const c = ctx();
-  const bufferSize = c.sampleRate * 0.03;
-  const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  // Noise burst
+  const bufLen = Math.floor(c.sampleRate * 0.06);
+  const buf = c.createBuffer(1, bufLen, c.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) d[i] = Math.random() * 2 - 1;
   const src = c.createBufferSource();
-  src.buffer = buffer;
+  src.buffer = buf;
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.setValueAtTime(3000, time);
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0.12, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+  src.connect(bp).connect(gain).connect(masterGain);
+  src.start(time);
+  src.stop(time + 0.09);
+};
+
+const playHat = (time: number) => {
+  if (!masterGain) return;
+  const c = ctx();
+  const bufLen = Math.floor(c.sampleRate * 0.02);
+  const buf = c.createBuffer(1, bufLen, c.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) d[i] = Math.random() * 2 - 1;
+  const src = c.createBufferSource();
+  src.buffer = buf;
   const hp = c.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.setValueAtTime(8000, c.currentTime);
+  hp.frequency.setValueAtTime(9000, time);
   const gain = c.createGain();
-  gain.gain.setValueAtTime(0.06, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.04);
-  src.connect(hp).connect(gain).connect(masterGain!);
-  src.start();
-  src.stop(c.currentTime + 0.04);
+  gain.gain.setValueAtTime(0.07, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.03);
+  src.connect(hp).connect(gain).connect(masterGain);
+  src.start(time);
+  src.stop(time + 0.04);
 };
 
-const step = () => {
-  if (stopRequested || !playing) return;
+// --- Scheduler (look-ahead pattern for glitch-free timing) ---
+const LOOK_AHEAD = 0.15; // schedule 150ms ahead
 
-  const stepDur = 60 / currentBPM / 2; // eighth notes
+const scheduleNotes = () => {
+  if (!playing || stopRequested || !masterGain) return;
+  const c = ctx();
+  const sixteenth = 60 / currentBPM / 4;
 
-  // Bass
-  const bassNote = SCALE[currentBass[stepIndex % 8]];
-  playNote(bassNote, "square", 0.06, stepDur * 0.8);
+  while (scheduledUntil < c.currentTime + LOOK_AHEAD) {
+    const time = scheduledUntil;
+    const s = stepIndex % 16;
 
-  // Melody (every other step or all steps randomly)
-  if (stepIndex % 2 === 0 || Math.random() > 0.4) {
-    const melodyNote = MELODY_SCALE[currentMelody[stepIndex % 8]];
-    playNote(melodyNote, "square", 0.035, stepDur * 0.5, Math.random() * 10 - 5);
-  }
+    // Melody
+    const mel = MELODIES[melodyIdx][s];
+    if (mel > 0) playTone(mel, time, sixteenth * 1.5, "square", 0.08, 5);
 
-  // Kick
-  if (currentKick[stepIndex % 8]) playKick();
+    // Bass
+    const bass = BASS_LINES[bassIdx][s];
+    if (bass > 0) playTone(bass, time, sixteenth * 2, "triangle", 0.12);
 
-  // Hi-hat
-  if (currentHat[stepIndex % 8]) playHat();
+    // Drums
+    if (DRUM_KICK[s]) playKick(time);
+    if (DRUM_SNARE[s]) playSnare(time);
+    if (DRUM_HAT[s]) playHat(time);
 
-  stepIndex++;
+    scheduledUntil += sixteenth;
+    stepIndex++;
 
-  // Every 8 steps = 1 bar, every 2-4 bars pick new patterns
-  if (stepIndex % 8 === 0) {
-    barCount++;
-    if (barCount % (2 + Math.floor(Math.random() * 3)) === 0) {
-      newPatterns();
+    // Every 16 steps (1 bar), maybe switch patterns
+    if (stepIndex % 16 === 0 && Math.random() > 0.4) {
+      pickNext();
     }
   }
 
-  currentTimeout = setTimeout(step, stepDur * 1000);
+  rafId = requestAnimationFrame(scheduleNotes);
 };
 
 export const startMusic = () => {
   if (playing) return;
   const c = ctx();
   masterGain = c.createGain();
-  masterGain.gain.setValueAtTime(0.5, c.currentTime);
+  masterGain.gain.setValueAtTime(0.6, c.currentTime);
   masterGain.connect(c.destination);
   playing = true;
   stopRequested = false;
   stepIndex = 0;
-  barCount = 0;
-  currentBPM = 140;
-  newPatterns();
-  step();
+  scheduledUntil = c.currentTime + 0.05;
+  currentBPM = 150;
+  pickNext();
+  scheduleNotes();
 };
 
 export const stopMusic = () => {
   stopRequested = true;
   playing = false;
-  if (currentTimeout) {
-    clearTimeout(currentTimeout);
-    currentTimeout = null;
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
   }
   masterGain = null;
 };
 
 export const updateMusicBPM = (score: number) => {
-  currentBPM = Math.min(200, 140 + score * 2);
+  currentBPM = Math.min(210, 150 + score * 2);
 };
 
 export const setMusicVolume = (vol: number) => {
