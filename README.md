@@ -24,10 +24,10 @@ A classic Snake game with a retro arcade twist, built with React, TypeScript, an
 
 ```sh
 # Clone the repository
-git clone <YOUR_GIT_URL>
+git clone https://github.com/stormwild/serpent-chompy.git
 
 # Navigate to the project directory
-cd <YOUR_PROJECT_NAME>
+cd serpent-chompy
 
 # Install dependencies
 npm i
