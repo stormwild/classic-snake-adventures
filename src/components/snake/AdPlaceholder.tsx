@@ -8,7 +8,7 @@ const ads = [
   {
     image: theWindhover,
     title: "The Windhover — Wild Lightning",
-    url: "https://music.youtube.com/playlist?list=OLAK5uy_m3VrvNEBJMBo37hpxDFW6Apx4RnVh-zJI",
+    url: "https://artists.landr.com/057914922638",
   },
   {
     image: tymara,
@@ -18,12 +18,12 @@ const ads = [
   {
     image: shiningInTheDark,
     title: "Shining in the Dark — Wild Lightning",
-    url: "https://music.youtube.com/playlist?list=OLAK5uy_loDZPuMX_unmQYcYSmTAYD5hYJdcRCKAc",
+    url: "https://artists.landr.com/057914922775",
   },
   {
     image: rivenRisen,
     title: "Riven Risen — Wild Lightning",
-    url: "https://music.youtube.com/playlist?list=OLAK5uy_lUstic-yQwdgjIe9vQbPzUglTIhwZ3FE8",
+    url: "https://artists.landr.com/057914939582",
   },
 ];
 
