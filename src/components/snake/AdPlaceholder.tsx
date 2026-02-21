@@ -47,7 +47,7 @@ const AdPlaceholder = () => {
         href={ad.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center rounded-sm overflow-hidden border border-border hover:border-primary transition-colors"
+        className="flex items-center justify-center rounded-sm overflow-hidden border border-border hover:border-primary transition-colors p-1.5"
         style={{ width: 150, height: 100 }}
         title={`${ad.title} — Wild Lightning`}
       >
