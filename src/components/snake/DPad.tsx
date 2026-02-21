@@ -10,7 +10,10 @@ interface DPadProps {
 const DPad = ({ onDirection, disabled }: DPadProps) => {
   const handle = (dir: Direction) => (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    if (!disabled) onDirection(dir);
+    if (!disabled) {
+      if (navigator.vibrate) navigator.vibrate(15);
+      onDirection(dir);
+    }
   };
 
   const base =
