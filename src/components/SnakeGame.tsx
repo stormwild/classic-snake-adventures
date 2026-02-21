@@ -257,7 +257,7 @@ const SnakeGame = () => {
           </div>
         </div>
         <div className="shrink-0 ml-auto">
-          <AdPlaceholder variant="rectangle" />
+          <AdPlaceholder />
         </div>
       </div>
 
