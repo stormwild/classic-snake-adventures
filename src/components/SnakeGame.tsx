@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { playEatSound, playMoveSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine, isMuted, setMuted } from "./snake/sounds";
+import { startMusic, stopMusic, updateMusicBPM, setMusicVolume } from "./snake/music";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DPad from "./snake/DPad";
 import AdPlaceholder from "./snake/AdPlaceholder";
@@ -47,8 +48,10 @@ const SnakeGame = () => {
     setMuted(next);
     if (next) {
       stopEngine();
+      stopMusic();
     } else if (started && !gameOver && !paused) {
       startEngine();
+      startMusic();
     }
   }, [muted, started, gameOver, paused]);
 
@@ -58,8 +61,10 @@ const SnakeGame = () => {
       const next = !p;
       if (next) {
         stopEngine();
+        stopMusic();
       } else if (!muted) {
         startEngine();
+        startMusic();
       }
       return next;
     });
@@ -76,7 +81,10 @@ const SnakeGame = () => {
     setScore(0);
     setPaused(false);
     setStarted(true);
-    if (!muted) startEngine();
+    if (!muted) {
+      startEngine();
+      startMusic();
+    }
   }, [muted]);
 
   // Keyboard controls
@@ -129,7 +137,10 @@ const SnakeGame = () => {
   useEffect(() => {
     if (!started || gameOver || paused) return;
 
-    if (!muted) updateEngine(score);
+    if (!muted) {
+      updateEngine(score);
+      updateMusicBPM(score);
+    }
     const speed = Math.max(60, INITIAL_SPEED - score * SPEED_INCREMENT);
     const interval = setInterval(() => {
       dirRef.current = nextDirRef.current;
@@ -147,6 +158,7 @@ const SnakeGame = () => {
         if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
           playWallHitSound();
           stopEngine();
+          stopMusic();
           setGameOver(true);
           return prev;
         }
@@ -155,6 +167,7 @@ const SnakeGame = () => {
         if (prev.some((s) => s.x === head.x && s.y === head.y)) {
           playSelfHitSound();
           stopEngine();
+          stopMusic();
           setGameOver(true);
           return prev;
         }
