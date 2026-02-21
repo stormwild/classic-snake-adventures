@@ -1,4 +1,4 @@
-# 🐍 Serpent Chompy Fun — Retro Snake Game
+# 🐍 Serpent Chompy — Retro Snake Game
 
 A classic Snake game with a retro arcade twist, built with React, TypeScript, and Tailwind CSS. Features procedural chiptune music inspired by classical masterpieces (Claire de Lune, Für Elise, Ode to Joy, Chopin, Bach) and touch-friendly D-Pad controls for mobile play.
 
