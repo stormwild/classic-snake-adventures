@@ -352,6 +352,9 @@ const SnakeGame = () => {
               >
                 {gameOver ? "PLAY AGAIN" : "START"}
               </button>
+              {!isMobile && (
+                <p className="text-[10px] text-muted-foreground mt-1">PRESS SPACE</p>
+              )}
               <p className="text-[10px] text-muted-foreground mt-2">
                 {isMobile ? "D-PAD / SWIPE" : "WASD / ARROWS • P TO PAUSE • M TO MUTE"}
               </p>
