@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { playEatSound, playMoveSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine, isMuted, setMuted } from "./snake/sounds";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DPad from "./snake/DPad";
+import AdPlaceholder from "./snake/AdPlaceholder";
 import { Volume2, VolumeX, Pause, Play } from "lucide-react";
 
 const GRID_SIZE = 20;
@@ -231,26 +232,32 @@ const SnakeGame = () => {
 
   return (
     <div className="flex flex-col items-center gap-3 sm:gap-5 select-none">
-      <h1
-        className="text-base sm:text-2xl text-foreground tracking-wider"
-        style={{ textShadow: "var(--neon-glow)" }}
-      >
-        SERPENT CHOMPY
-      </h1>
-
-      {/* Score bar + controls */}
-      <div className="flex items-center gap-4 sm:gap-6 text-[10px] sm:text-xs text-muted-foreground">
-        <span>SCORE: <span className="text-foreground">{score}</span></span>
-        <span>BEST: <span className="text-accent" style={{ textShadow: "var(--neon-glow-accent)" }}>{highScore}</span></span>
-        <div className="flex gap-1.5 ml-2">
-          <button onClick={toggleMute} className={iconBtn} aria-label={muted ? "Unmute" : "Mute"}>
-            {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          </button>
-          {started && !gameOver && (
-            <button onClick={togglePause} className={iconBtn} aria-label={paused ? "Resume" : "Pause"}>
-              {paused ? <Play size={14} /> : <Pause size={14} />}
-            </button>
-          )}
+      {/* Header row: title + score on left, ad on right */}
+      <div className="flex items-center gap-4 sm:gap-6 w-full" style={{ maxWidth: boardPx * scale }}>
+        <div className="flex flex-col gap-1 min-w-0">
+          <h1
+            className="text-base sm:text-2xl text-foreground tracking-wider whitespace-nowrap"
+            style={{ textShadow: "var(--neon-glow)" }}
+          >
+            SERPENT CHOMPY
+          </h1>
+          <div className="flex items-center gap-3 sm:gap-5 text-[10px] sm:text-xs text-muted-foreground">
+            <span>SCORE: <span className="text-foreground">{score}</span></span>
+            <span>BEST: <span className="text-accent" style={{ textShadow: "var(--neon-glow-accent)" }}>{highScore}</span></span>
+            <div className="flex gap-1.5 ml-1">
+              <button onClick={toggleMute} className={iconBtn} aria-label={muted ? "Unmute" : "Mute"}>
+                {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              </button>
+              {started && !gameOver && (
+                <button onClick={togglePause} className={iconBtn} aria-label={paused ? "Resume" : "Pause"}>
+                  {paused ? <Play size={14} /> : <Pause size={14} />}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="shrink-0 ml-auto">
+          <AdPlaceholder variant="rectangle" />
         </div>
       </div>
 
