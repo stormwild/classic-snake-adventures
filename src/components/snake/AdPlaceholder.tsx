@@ -54,7 +54,7 @@ const AdPlaceholder = () => {
         <img
           src={ad.image}
           alt={ad.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           draggable={false}
         />
       </a>
