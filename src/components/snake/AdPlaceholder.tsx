@@ -42,21 +42,24 @@ const AdPlaceholder = () => {
   const ad = ads[index];
 
   return (
-    <a
-      href={ad.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block rounded-sm overflow-hidden border border-border hover:border-primary transition-colors"
-      style={{ width: 150, height: 100 }}
-      title={`${ad.title} — Wild Lightning`}
-    >
-      <img
-        src={ad.image}
-        alt={ad.title}
-        className="w-full h-full object-cover"
-        draggable={false}
-      />
-    </a>
+    <div className="flex flex-col items-center gap-0.5">
+      <a
+        href={ad.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block rounded-sm overflow-hidden border border-border hover:border-primary transition-colors"
+        style={{ width: 150, height: 100 }}
+        title={`${ad.title} — Wild Lightning`}
+      >
+        <img
+          src={ad.image}
+          alt={ad.title}
+          className="w-full h-full object-cover"
+          draggable={false}
+        />
+      </a>
+      <span className="text-[8px] text-muted-foreground/50 uppercase tracking-widest">Sponsored</span>
+    </div>
   );
 };
 
