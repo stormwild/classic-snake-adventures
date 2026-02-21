@@ -239,7 +239,7 @@ const SnakeGame = () => {
             className="text-base sm:text-2xl text-foreground tracking-wider whitespace-nowrap"
             style={{ textShadow: "var(--neon-glow)" }}
           >
-            SERPENT CHOMPY
+            SERPENT CHOMPY - CLASSIC SNAKE ADVENTURES
           </h1>
           <div className="flex items-center gap-3 sm:gap-5 text-[10px] sm:text-xs text-muted-foreground">
             <span>SCORE: <span className="text-foreground">{score}</span></span>
