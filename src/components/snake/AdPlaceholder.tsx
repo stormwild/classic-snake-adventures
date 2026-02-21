@@ -2,21 +2,27 @@ import { useState, useEffect } from "react";
 import theWindhover from "@/assets/ads/the-windhover.jpg";
 import shiningInTheDark from "@/assets/ads/shining-in-the-dark.jpg";
 import rivenRisen from "@/assets/ads/riven-risen.jpg";
+import tymara from "@/assets/ads/tymara.png";
 
 const ads = [
   {
     image: theWindhover,
-    title: "The Windhover",
+    title: "The Windhover — Wild Lightning",
     url: "https://music.youtube.com/playlist?list=OLAK5uy_m3VrvNEBJMBo37hpxDFW6Apx4RnVh-zJI",
   },
   {
+    image: tymara,
+    title: "Tymara — World Clock & Timezone Tracker",
+    url: "https://tymara.app/",
+  },
+  {
     image: shiningInTheDark,
-    title: "Shining in the Dark",
+    title: "Shining in the Dark — Wild Lightning",
     url: "https://music.youtube.com/playlist?list=OLAK5uy_loDZPuMX_unmQYcYSmTAYD5hYJdcRCKAc",
   },
   {
     image: rivenRisen,
-    title: "Riven Risen",
+    title: "Riven Risen — Wild Lightning",
     url: "https://music.youtube.com/playlist?list=OLAK5uy_lUstic-yQwdgjIe9vQbPzUglTIhwZ3FE8",
   },
 ];
