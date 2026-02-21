@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { playEatSound, playMoveSound, playWallHitSound, playSelfHitSound, startEngine, updateEngine, stopEngine, isMuted, setMuted } from "./snake/sounds";
+import { playEatSound, playMoveSound, playWallHitSound, playSelfHitSound, playGameOverSound, startEngine, updateEngine, stopEngine, isMuted, setMuted } from "./snake/sounds";
 import { startMusic, stopMusic, updateMusicBPM, setMusicVolume } from "./snake/music";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DPad from "./snake/DPad";
@@ -157,6 +157,7 @@ const SnakeGame = () => {
         // Wall collision
         if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
           playWallHitSound();
+          playGameOverSound();
           stopEngine();
           stopMusic();
           setGameOver(true);
@@ -166,6 +167,7 @@ const SnakeGame = () => {
         // Self collision
         if (prev.some((s) => s.x === head.x && s.y === head.y)) {
           playSelfHitSound();
+          playGameOverSound();
           stopEngine();
           stopMusic();
           setGameOver(true);
