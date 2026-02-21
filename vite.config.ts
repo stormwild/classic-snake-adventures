@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
-        name: "Serpent Chompy - Classic Snake Adventures",
+        name: "Serpent Chompy - Classic Snake Adventures Game",
         short_name: "Snake",
         description:
           "A neon-styled retro Snake game with smooth controls, swipe support, score tracking, and increasing speed.",
