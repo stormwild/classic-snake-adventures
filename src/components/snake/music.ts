@@ -24,61 +24,145 @@ let stepIndex = 0;
 
 // --- Frequencies ---
 const N = (semi: number) => 440 * Math.pow(2, semi / 12);
+// Octave 2
+const C2=N(-33), D2=N(-31), E2=N(-29), F2=N(-28), G2=N(-26), A2=N(-24), B2=N(-22);
 // Octave 3
-const C3=N(-21), D3=N(-19), E3=N(-17), F3=N(-16), G3=N(-14), A3=N(-12), B3=N(-10);
+const C3=N(-21), D3=N(-19), E3=N(-17), F3=N(-16), Fs3=N(-15), G3=N(-14), Gs3=N(-13), A3=N(-12), Bb3=N(-11), B3=N(-10);
 // Octave 4
-const C4=N(-9), D4=N(-7), Eb4=N(-6), E4=N(-5), F4=N(-4), Fs4=N(-3), G4=N(-2), Gs4=N(-1), A4=N(0), Bb4=N(1), B4=N(2);
+const C4=N(-9), Cs4=N(-8), D4=N(-7), Eb4=N(-6), E4=N(-5), F4=N(-4), Fs4=N(-3), G4=N(-2), Gs4=N(-1), A4=N(0), Bb4=N(1), B4=N(2);
 // Octave 5
-const C5=N(3), D5=N(5), Eb5=N(4), E5=N(7), F5=N(8), G5=N(10), A5=N(12);
+const C5=N(3), Cs5=N(4), D5=N(5), Eb5=N(4), E5=N(7), F5=N(8), Fs5=N(9), G5=N(10), Gs5=N(11), A5=N(12), Bb5=N(13), B5=N(14);
+// Octave 6
+const C6=N(15);
 const R = 0; // rest
 
-// --- Classical-inspired melody phrases (16 steps = 1 bar of 16th notes) ---
+// ===================================================================
+//  MELODY LIBRARY — classical hooks arranged as 16-step chiptune bars
+// ===================================================================
 const MELODIES = [
-  // Claire de Lune — dreamy ascending arpeggio feel (Db major → C major adaptation)
-  [E4,R,G4,R, C5,R,E5,R, D5,R,C5,R, G4,R,E4,R],
-  // Claire de Lune — descending answer phrase
-  [E5,R,D5,R, C5,R,G4,R, A4,R,G4,R, E4,R,C4,R],
-  // Für Elise hook (E-D#-E-D#-E-B-D-C)
+  // --- Für Elise (Beethoven) — full theme ---
+  // A section phrase 1: E-D#-E-D#-E-B-D-C-A
   [E5,Eb5,E5,Eb5, E5,B4,D5,C5, A4,R,R,R, C4,E4,A4,R],
-  // Ode to Joy (Beethoven) — upbeat
+  // A section phrase 2: B answer
+  [R,R,E4,Gs4, B4,R,R,R, C4,E4,A4,B4, C5,R,R,R],
+  // A section repeat with resolution
+  [E5,Eb5,E5,Eb5, E5,B4,D5,C5, A4,R,C4,E4, A4,R,B4,R],
+  // B section — lyrical contrast
+  [C5,R,D5,E5, F5,R,E5,D5, C5,R,B4,A4, Gs4,R,A4,B4],
+
+  // --- Ode to Joy (Beethoven) — full theme ---
+  // Main theme phrase 1
   [E4,E4,F4,G4, G4,F4,E4,D4, C4,C4,D4,E4, E4,R,D4,D4],
-  // Ode to Joy — second phrase
+  // Main theme phrase 2
   [E4,E4,F4,G4, G4,F4,E4,D4, C4,C4,D4,E4, D4,R,C4,C4],
-  // Claire de Lune — shimmering high phrase
+  // Bridge (D-D-E-C-D-EF-E-C-D-EF-E-D-C-D-G3)
+  [D4,D4,E4,C4, D4,E4,F4,E4, C4,D4,E4,F4, E4,D4,C4,D4],
+  // Return to main with triumphant ending
+  [E4,E4,F4,G4, G4,F4,E4,D4, C4,C4,D4,E4, D4,R,C4,R],
+
+  // --- Claire de Lune (Debussy) ---
+  // Opening ascending arpeggio
+  [E4,R,G4,R, C5,R,E5,R, D5,R,C5,R, G4,R,E4,R],
+  // Descending answer
+  [E5,R,D5,R, C5,R,G4,R, A4,R,G4,R, E4,R,C4,R],
+  // Shimmering high phrase
   [G5,R,E5,R, C5,R,E5,R, G5,R,E5,R, D5,R,C5,R],
-  // Playful bridge (original — connecting hook)
+  // Gentle falling — rubato feel
+  [C5,R,B4,R, A4,R,G4,R, F4,R,E4,R, D4,R,C4,R],
+
+  // --- Chopin Nocturne Op.9 No.2 (Eb major → C adaptation) ---
+  // Opening lyrical phrase
+  [G4,R,C5,R, E5,R,D5,C5, B4,R,C5,R, D5,R,R,R],
+  // Ornamental run
+  [E5,D5,C5,D5, E5,G5,E5,C5, D5,C5,B4,C5, D5,R,R,R],
+  // Yearning ascent
+  [C5,R,E5,R, G5,R,A5,R, G5,R,E5,R, C5,R,R,R],
+  // Tender resolution
+  [A5,R,G5,R, E5,R,D5,R, C5,R,D5,R, C5,R,R,R],
+
+  // --- Bach Invention No.1 in C (two-part) ---
+  // Rising subject
+  [C4,D4,E4,F4, D4,E4,C4,R, E4,F4,G4,A4, F4,G4,E4,R],
+  // Answer / inversion
+  [G4,F4,E4,D4, F4,E4,G4,R, E4,D4,C4,B3, D4,C4,E4,R],
+  // Sequence rising
+  [C5,B4,A4,G4, A4,B4,C5,D5, E5,D5,C5,B4, C5,R,R,R],
+
+  // --- Bach Cello Suite No.1 Prelude (G major → C adaptation) ---
+  // Arpeggiated figure 1
+  [C4,E4,G4,C5, E5,C5,G4,E4, C4,E4,G4,C5, E5,C5,G4,E4],
+  // Arpeggiated figure 2 (moving harmony)
+  [D4,F4,A4,D5, F5,D5,A4,F4, E4,G4,B4,E5, G5,E5,B4,G4],
+  // Arpeggiated figure 3
+  [F4,A4,C5,F5, A5,F5,C5,A4, G4,B4,D5,G5, B5,G5,D5,B4],
+
+  // --- Chopin Waltz in Db (Minute Waltz feel, C adaptation) ---
+  // Spinning motif
+  [E5,F5,E5,D5, C5,D5,E5,G5, F5,E5,D5,C5, D5,E5,D5,C5],
+  // Whirling continuation
+  [G4,A4,B4,C5, D5,E5,F5,E5, D5,C5,B4,A4, G4,R,R,R],
+
+  // --- Playful bridges (original connecting material) ---
   [C5,D5,E5,G5, E5,D5,C5,R, A4,B4,C5,E5, D5,C5,A4,R],
+  [G4,A4,B4,D5, C5,B4,A4,G4, F4,G4,A4,C5, B4,A4,G4,R],
 ];
 
-// --- Bass lines (Canon in D inspired + walking bass) ---
+// --- Bass lines (expanded) ---
 const BASS_LINES = [
-  // Canon in D progression: C-G-Am-F (simplified)
+  // Canon in D: C-G-Am-F
   [C3,R,C3,R, G3,R,G3,R, A3,R,A3,R, F3,R,F3,R],
-  // Walking bass — classic arcade
+  // Walking bass
   [C3,R,E3,R, G3,R,E3,R, F3,R,A3,R, G3,R,E3,R],
-  // Descending bass
-  [A3,R,G3,R, F3,R,E3,R, D3,R,E3,R, C3,R,G3,R],
+  // Descending
+  [A3,R,G3,R, F3,R,E3,R, D3,R,E3,R, C3,R,G2,R],
   // Pulsing root
   [C3,C3,R,C3, R,C3,R,R, G3,G3,R,G3, R,G3,R,R],
+  // Alberti-style (Chopin/Mozart)
+  [C3,G3,E3,G3, C3,G3,E3,G3, F3,C3,A3,C3, G3,D3,B2,D3],
+  // Dramatic ascending
+  [C3,R,D3,R, E3,R,F3,R, G3,R,A3,R, B3,R,C3,R],
+  // Bach-style pedal point
+  [C3,C3,C3,C3, C3,C3,C3,C3, G2,G2,G2,G2, G2,G2,G2,G2],
+  // Bouncy octaves
+  [C3,C2,C3,C2, G2,G3,G2,G3, A2,A3,A2,A3, F2,F3,F2,F3],
 ];
 
-// Drums — 16th note grid
-const DRUM_KICK  = [1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0];
-const DRUM_SNARE = [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0];
-const DRUM_HAT   = [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0];
+// Drum patterns (expanded)
+const DRUM_KICKS = [
+  [1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0],
+  [1,0,0,1, 0,0,1,0, 0,0,1,0, 0,0,0,0],
+  [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0],
+];
+const DRUM_SNARES = [
+  [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+  [0,0,0,0, 1,0,0,1, 0,0,0,0, 1,0,0,0],
+];
+const DRUM_HATS = [
+  [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+  [1,1,1,0, 1,1,1,0, 1,1,1,0, 1,1,1,0],
+  [1,0,1,1, 1,0,1,1, 1,0,1,1, 1,0,1,1],
+];
 
 let melodyIdx = 0;
 let bassIdx = 0;
+let kickIdx = 0;
+let snareIdx = 0;
+let hatIdx = 0;
 let barCount = 0;
 
 const pickNext = () => {
-  // Cycle through melodies mostly in order for musical coherence, with occasional jumps
   if (Math.random() > 0.3) {
     melodyIdx = (melodyIdx + 1) % MELODIES.length;
   } else {
     melodyIdx = Math.floor(Math.random() * MELODIES.length);
   }
   bassIdx = (bassIdx + 1) % BASS_LINES.length;
+  // Shuffle drums occasionally
+  if (Math.random() > 0.5) {
+    kickIdx = Math.floor(Math.random() * DRUM_KICKS.length);
+    snareIdx = Math.floor(Math.random() * DRUM_SNARES.length);
+    hatIdx = Math.floor(Math.random() * DRUM_HATS.length);
+  }
 };
 
 // --- Synth voices ---
@@ -205,9 +289,9 @@ const scheduleNotes = () => {
     }
 
     // Drums
-    if (DRUM_KICK[s]) playKick(time);
-    if (DRUM_SNARE[s]) playSnare(time);
-    if (DRUM_HAT[s]) playHat(time);
+    if (DRUM_KICKS[kickIdx][s]) playKick(time);
+    if (DRUM_SNARES[snareIdx][s]) playSnare(time);
+    if (DRUM_HATS[hatIdx][s]) playHat(time);
 
     scheduledUntil += sixteenth;
     stepIndex++;
