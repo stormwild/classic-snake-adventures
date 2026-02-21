@@ -235,7 +235,7 @@ const SnakeGame = () => {
         className="text-base sm:text-2xl text-foreground tracking-wider"
         style={{ textShadow: "var(--neon-glow)" }}
       >
-        SNAKE
+        SERPENT CHOMPY
       </h1>
 
       {/* Score bar + controls */}
